@@ -1,9 +1,8 @@
-
-import { useCart } from '@/Context/cartContext';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useCart } from '../../Context/cartContext';
 export default function FloatingCartButton() {
   const { cartItems } = useCart();
   const router = useRouter();

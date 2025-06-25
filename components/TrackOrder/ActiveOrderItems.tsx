@@ -1,11 +1,10 @@
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native'
-import React, { use, useEffect, useState } from 'react'
-import apiClient from '@/utils/apiClient'
-import LoadingScreen from '../LoadingScreen'
-import { useOrderActive } from '@/Context/orderContext'
 import { router } from 'expo-router'
-import { userAuth } from '@/Context/authContext'
-import { store } from 'expo-router/build/global-state/router-store'
+import React, { useEffect, useState } from 'react'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { userAuth } from '../../Context/authContext'
+import { useOrderActive } from '../../Context/orderContext'
+import apiClient from '../../utils/apiClient'
+import LoadingScreen from '../LoadingScreen'
 export default function ActiveOrderItems({activeOrderId}) {
 
   const [order , setOrder] = useState(null)

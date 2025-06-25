@@ -1,9 +1,8 @@
-
-import apiClient from '@/utils/apiClient';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import apiClient from '../../utils/apiClient';
 import Womencare from './womenCare';
 
 export default function Categories() {

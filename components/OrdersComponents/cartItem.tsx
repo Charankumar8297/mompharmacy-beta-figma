@@ -1,8 +1,8 @@
-import { userAuth } from "@/Context/authContext";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
+import { userAuth } from '../../Context/authContext';
 import { useCart } from "../../Context/cartContext";
 
 export default function CartItem({ item }) {

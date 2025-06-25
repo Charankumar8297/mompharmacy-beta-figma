@@ -1,7 +1,10 @@
-import apiClient from "@/utils/apiClient";
-import { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
+import apiClient from "../utils/apiClient";
 
-const MedicineContext = createContext({});
+const MedicineContext = createContext({
+  category: [],
+  Categories: () => {},
+});
 
 export const MedicineProvider = ({ children }) => {
   const [category, setCategory] = useState([]);

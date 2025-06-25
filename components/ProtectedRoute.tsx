@@ -1,7 +1,7 @@
-import { userAuth } from '@/Context/authContext';
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { userAuth } from '../Context/authContext';
 
 export default function ProtectedLayout({children}) {
   const { userDetails, isLoggedIn } = userAuth();

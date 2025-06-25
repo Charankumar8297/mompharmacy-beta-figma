@@ -1,24 +1,24 @@
-import { COLOR } from '@/constants/color';
-import { useAddress } from '@/Context/addressContext';
-import apiClient from '@/utils/apiClient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Button,
-  Linking,
-  Modal,
-  Pressable,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Button,
+    Linking,
+    Modal,
+    Pressable,
+    ScrollView,
+    Share,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { COLOR } from '../../constants/color';
+import { useAddress } from '../../Context/addressContext';
+import apiClient from '../../utils/apiClient';
 
 const MyAddressesScreen = () => {
   const [data, setData] = useState([]);

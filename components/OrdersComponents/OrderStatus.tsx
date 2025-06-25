@@ -1,7 +1,7 @@
-import { COLOR } from "@/constants/color";
 import { AntDesign, Feather, FontAwesome, Octicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { COLOR } from '../../constants/color';
 
 const orderStatusList = [
   {

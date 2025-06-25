@@ -11,6 +11,10 @@ config.resolver = {
   ...config.resolver,
   assetExts: config.resolver.assetExts.filter(ext => ext !== 'svg'),
   sourceExts: [...config.resolver.sourceExts, 'svg'],
+  extraNodeModules: {
+    ...config.resolver.extraNodeModules,
+    '@': __dirname,
+  },
 };
 
 module.exports = config;

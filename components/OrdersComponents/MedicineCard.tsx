@@ -1,6 +1,6 @@
-import { COLOR } from '@/constants/color'
 import React from 'react'
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { COLOR } from '../../constants/color'
 import { useCart } from '../../Context/cartContext'
 
 export default function MedicineCard({ item }) {

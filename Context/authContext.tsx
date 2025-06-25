@@ -1,9 +1,9 @@
-import LoadingScreen from "@/components/LoadingScreen";
-import apiClient from "@/utils/apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
+import LoadingScreen from "../components/LoadingScreen";
+import apiClient from "../utils/apiClient";
 
 export const AuthContext = createContext(null);
 
