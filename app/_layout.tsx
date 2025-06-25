@@ -46,6 +46,7 @@ export default function RootLayout() {
                           <Stack.Screen name="BottomNavbar/categories" />
                           <Stack.Screen name="BottomNavbar/cart" />
                           <Stack.Screen name="BottomNavbar/profile" options={{ headerShown: false }} />
+                          <Stack.Screen name="test/ConnectionTest" />
                         </Stack>
                         {shouldShowCartButton && <FloatingCartButton />}
                       </>

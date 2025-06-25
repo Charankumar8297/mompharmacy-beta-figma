@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app uses the microphone to perform voice search."
-      }
+      },
+      "bundleIdentifier": "com.shivakumar-108.mompharmacy--beta"
     },
     "android": {
       "permissions": [
