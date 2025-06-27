@@ -1,3 +1,4 @@
+import TipSelector from '@/components/Cart/tip';
 import CartList from '@/components/OrdersComponents/CartList';
 import OrderSummary from '@/components/OrdersComponents/OrderSummary';
 import StatusHeader from '@/components/OrdersComponents/StatusHeader';
@@ -12,13 +13,13 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 import { ActivityIndicator } from 'react-native-paper';
 import { useCart } from '../../Context/cartContext';
 import OrderConfirmationModal from './OrderConfirmation';
-
 const OrderReviewScreen = () => {
   const { cartItems, subtotal, updateQuantity } = useCart();
   const [orderId, setOrderId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [ medicine, setMedicine]=useState([])
   const [isLoading ,setIsLoading] = useState(false)
+  const [tipAmount, setTipAmount] = useState(0);
 
   const {ExtractParseToken} = userAuth()
   const {clearCart} = useCart()
@@ -58,7 +59,7 @@ const OrderReviewScreen = () => {
       shippingFee: 5,
       tax: 2.5,
       discount: 3,
-      total_amount: subtotal + 5 + 2.5 - 3,
+      total_amount: subtotal + 5 + 2.5 - 3+tipAmount,
       paymentMethod: "COD",
     };
 
@@ -123,7 +124,11 @@ const OrderReviewScreen = () => {
           <Text>Change</Text>
         </TouchableOpacity>
       </View>
-      <OrderSummary />
+      <TipSelector onTipChange={(tip) => setTipAmount(tip)} />
+        
+      <OrderSummary tipAmount={tipAmount} />
+
+
       <TouchableOpacity
         style={styles.proceedButton}
         onPress={() => postOrders(cartItems)}

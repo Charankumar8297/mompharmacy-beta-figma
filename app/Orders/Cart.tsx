@@ -12,32 +12,7 @@ import Recommended from '../Recommended';
 const OrderReviewScreen = () => {
 
  
-  const [items, setItems] = useState([
-    {
-      _id: 1,
-      name: 'Strepsils Orange',
-      unit: '1 unit',
-      price: 99,
-      quantity: 1,
-      image: require("@/assets/images/Categories/babyoil.png"),
-    },
-    {
-      _id: 2,
-      name: 'Cold act',
-      unit: '1 unit',
-      price: 99,
-      quantity: 1,
-      image: require("@/assets/images/Categories/babyoil.png"),
-    },
-    {
-      _id: 3,
-      name: 'Nasoclear Saline',
-      unit: '1 unit',
-      price: 99,
-      quantity: 1,
-      image: require('@/assets/images/Categories/babyoil.png'),
-    },
-  ]);
+  const [items, setItems] = useState([]);
 
   const {cartItems , subtotal} = useCart()
 
@@ -70,12 +45,26 @@ const OrderReviewScreen = () => {
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 120 }}>
        
         <CartList/>
-        <View style={styles.recommendedContainer}>
-          {/* <Text style={styles.recommended}>Recommended</Text> */}
-        </View>
+        <View style={styles.FreeDelivery}>
+        <Text style={styles.freeDeliveryText} >Just ₹xx away from free delivery</Text>
+        <TouchableOpacity onPress={()=> router.push("/essential")} >
+          <Text style={styles.addMoreText} >+Add More</Text>
+        </TouchableOpacity>
 
+
+        </View>
+        
+
+
+
+        <View style={styles.recommendedContainer}>
+        
+          {/* <Text style={styles.recommended}>Recommended</Text> */}
+        
+        
         {/* <ScrollView horizontal={true}> */}
           <Recommended />
+          </View>
           {/* <View style={styles.recommendedCardContainer}>
             {items.map(item => (
               <MedicineCard key={item._id} item={item} />
@@ -96,6 +85,7 @@ const OrderReviewScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+      
     </View>
 </ProtectedLayout>
   );
@@ -111,6 +101,30 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16
+  },
+  addbtn:{
+    width:"100%",
+    height:30,
+    backgroundColor:"#D5ECE9",
+    borderRadius:20,
+    marginTop:10,
+
+  },
+  FreeDelivery:{
+    marginTop:10,
+    borderRadius:20,
+    height:'auto',
+    width:'auto',
+    marginHorizontal:15,
+    backgroundColor:'#e7f6f2',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  },
+  freeDeliveryText:{
+    margin:10,
+    fontWeight:600,
+    textAlign:'center'
   },
 
   deliveryBox: {
@@ -183,6 +197,10 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontSize: 16,
     color: '#333',
+  },
+  addMoreText: {
+    textDecorationLine: 'underline',
+    color: '#00a99d',
   },
   summaryValue: {
     fontWeight: '500',

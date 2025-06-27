@@ -99,7 +99,7 @@ export default function CartItem({ item }) {
     <View style={styles.itemRow}>
       <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
       <View style={styles.itemInfo}>
-        <Text style={styles.itemName}>{item.medicine_name}</Text>
+        <Text numberOfLines={1} style={styles.itemName}>{item.medicine_name}</Text>
         <Text style={styles.itemUnit}>{item.quantity}</Text>
 
         <TouchableOpacity
@@ -115,10 +115,14 @@ export default function CartItem({ item }) {
       ) : (
         <Text >Save for later</Text>
       )}
+      
     </View>
+    
   )}
 </TouchableOpacity>
-
+<View style={{ marginTop:15,height: 1, width: '100%', borderRadius: 1, borderWidth: 1, borderColor: '#7d827e', borderStyle: 'dashed', zIndex: 0, }}>
+  <View style={{ position: 'absolute', left: 0, bottom: 0, width: '100%', height: 1, backgroundColor: 'white', zIndex: 1 }} />
+</View>
       </View>
 
       <View style={styles.counterBox}>
@@ -136,10 +140,12 @@ export default function CartItem({ item }) {
           <TouchableOpacity onPress={() => incrementItem(item._id)}>
             <Text style={styles.counterBtn}>+</Text>
           </TouchableOpacity>
+
         </View>
         <Text style={styles.itemPrice}>₹{item.price * item.quantity}</Text>
       </View>
     </View>
+    
   );
 }
 
@@ -160,7 +166,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemName: {
-    fontWeight: "bold",
+    fontWeight: "500",
+    paddingRight:20
+
   },
   itemUnit: {
     color: "#666",

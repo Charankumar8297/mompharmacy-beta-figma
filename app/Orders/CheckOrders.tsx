@@ -1,7 +1,9 @@
 import ActiveOrderItems from "@/components/TrackOrder/ActiveOrderItems";
 import { useOrderActive } from "@/Context/orderContext";
+import { MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, Text } from "react-native";
+import { ScrollView, StyleSheet, Text, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoadingScreen from "../ErrorScreens/loadingscreen";
 
@@ -13,6 +15,7 @@ function CheckOrders() {
 
   return  <SafeAreaView style={{flex:1}}>
     <ScrollView style={styles.container}>
+      <MaterialIcons name='arrow-back' size={24} onPress={()=>router.back()}/>
         <Text style={styles.header}>Multiple orders</Text>
         {Array.isArray(orderIDs) &&
           orderIDs.map((item) => (

@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function Medicines({ limit }) {
   const [sortType, setSortType] = useState('low');
@@ -90,7 +91,8 @@ export default function Medicines({ limit }) {
         <TopNavbar onBack={() => router.back()} />
 
         <View style={styles.header}>
-          <Text style={styles.title}>Popular Medicines</Text>
+          <MaterialIcons name="arrow-back" size={24} color="black" onPress={()=>router.back()} />         
+           <Text style={styles.title}>Popular Medicines</Text>
         </View>
 
         <View style={styles.sortContainer}>
@@ -250,11 +252,14 @@ const styles = StyleSheet.create({
   header: {
     padding: 10,
     backgroundColor: '#fff',
+    flexDirection: 'row',
+    
   },
   title: {
     fontWeight: 'bold',
     fontSize: 20,
     color: '#333',
+    left: 20,
   },
   sortContainer: {
     flexDirection: 'row',
