@@ -61,17 +61,21 @@ export default OrderStatus;
 
 const styles = StyleSheet.create({
     orderStatusContainer:{
-        padding: 14,
+        backgroundColor:"#fff",
+        borderWidth:1,
+        borderColor:"#000",
+        borderRadius:12,
+        margin:10,
     },
     orderStatusBtn:{
-        backgroundColor:COLOR.light,
+        backgroundColor:"#fff",
         padding: 12,
         flexDirection:"row",
         justifyContent:"space-between",
         // borderRadius: 10,
     },
     orderStatusDropdownContainer:{
-        backgroundColor:COLOR.light,
+        backgroundColor:"#fff",
         padding: 12,
         // borderRadius: 10,
     }
