@@ -1,9 +1,12 @@
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
+
 import { userAuth } from '@/Context/authContext';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Text, View } from "react-native";
+import { Alert, Text, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import GetStarted from './Login/getstart';
 
@@ -20,16 +23,12 @@ export default function Index() {
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(null);
 
-  const notificationListener = useRef();
-  const responseListener = useRef();
+  const notificationListener = useRef<any>(null);
+  const responseListener = useRef<any>(null);
 
   useEffect(() => {
     const init = async () => {
       const token = await ExtractParseToken();
-
-      console.log("Token:", token);
-      console.log("UserDetails:", userDetails);
-      console.log("This from index:", isLoggedIn, token);
 
       if (isLoggedIn && token) {
         if (!userDetails?.isRegistered) {
@@ -43,28 +42,24 @@ export default function Index() {
 
       const pushToken = await registerForPushNotificationsAsync();
       if (pushToken) {
-        console.log("Expo Push Token:", pushToken);
         setExpoPushToken(pushToken);
       }
 
       notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-        console.log('Notification received in foreground:', notification);
         setNotification(notification);
         Alert.alert(
-          notification.request.content.title,
-          notification.request.content.body
+          notification.request.content.title || 'Notification',
+          notification.request.content.body || ''
         );
       });
 
       responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-        console.log('User interacted with notification:', response);
         setNotification(response.notification);
       });
     };
 
     init();
 
-    // Cleanup
     return () => {
       if (notificationListener.current) {
         Notifications.removeNotificationSubscription(notificationListener.current);
@@ -78,7 +73,7 @@ export default function Index() {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} />
+        <ActivityIndicator size="large" />
       </View>
     );
   }
@@ -90,9 +85,9 @@ export default function Index() {
       {notification && (
         <View style={{ marginTop: 20, backgroundColor: '#eee', padding: 10, borderRadius: 8 }}>
           <Text style={{ fontWeight: 'bold' }}>
-            {notification.request.content.title}
+            {notification.request?.content?.title || 'Notification'}
           </Text>
-          <Text>{notification.request.content.body}</Text>
+          <Text>{notification.request?.content?.body}</Text>
         </View>
       )}
     </View>

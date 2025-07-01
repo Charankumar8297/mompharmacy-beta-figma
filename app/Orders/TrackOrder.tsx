@@ -7,7 +7,7 @@ import apiClient from '@/utils/apiClient';
 import { Ionicons } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -29,6 +29,8 @@ export default function TrackOrder() {
   const [loading, setLoading] = useState<boolean>(true);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const { ExtractParseToken } = userAuth();
+  const params = useLocalSearchParams();
+  const orderIdFromParams = params?.id as string;
 
   useEffect(() => {
     console.log('ActiveOrderId:', ActiveOrderId);
@@ -39,13 +41,19 @@ export default function TrackOrder() {
       isInitial ? setLoading(true) : setIsFetching(true);
       setError(null);
 
+      const orderId = orderIdFromParams || ActiveOrderId;
+      if (!orderId) {
+        setError('No order ID found');
+        return;
+      }
+
       const tokenAuth = await ExtractParseToken();
       if (!tokenAuth) {
         setError('Authentication required');
         return;
       }
 
-      const response = await apiClient(`api/orderbyid/${ActiveOrderId}`, {
+      const response = await apiClient(`api/orderbyid/${orderId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenAuth}`,
@@ -68,14 +76,16 @@ export default function TrackOrder() {
     } finally {
       isInitial ? setLoading(false) : setIsFetching(false);
     }
-  }, [ActiveOrderId, ExtractParseToken]);
+  }, [ActiveOrderId, ExtractParseToken, orderIdFromParams]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchOrderData(true);
+      if (orderIdFromParams || ActiveOrderId) {
+        fetchOrderData(true);
+      }
       const id = setInterval(() => fetchOrderData(false), 5000);
       return () => clearInterval(id);
-    }, [fetchOrderData])
+    }, [fetchOrderData, orderIdFromParams, ActiveOrderId])
   );
 
   const handleCall = (phone: string) => Linking.openURL(`tel:${phone}`);

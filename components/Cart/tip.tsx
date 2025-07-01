@@ -1,21 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const TipSelector = ({ onTipChange }) => {
-  const [selectedTip, setSelectedTip] = useState(null);
+  const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(null);
   const [customTip, setCustomTip] = useState('');
   const tips = [20, 30, 50];
 
-  useEffect(() => {
-    if (typeof onTipChange !== 'function') return;
-
-    if (selectedTip === 'custom') {
-      const parsed = parseFloat(customTip);
-      onTipChange(!isNaN(parsed) ? parsed : 0);
-    } else {
-      onTipChange(selectedTip || 0);
+  const handleTipSelect = useCallback((amount: number) => {
+    const newTip = selectedTip === amount ? null : amount;
+    setSelectedTip(newTip);
+    if (onTipChange) {
+      onTipChange(newTip || 0);
     }
-  }, [selectedTip, customTip]);
+  }, [selectedTip, onTipChange]);
+
+  const handleCustomTipChange = useCallback((value: string) => {
+    if (value !== ''&& !/^\d*$/.test(value)) {
+      Alert.alert('Invalid Input', 'Please enter a valid number')
+      return;
+    }
+    if (value.length > 3)
+      return;
+    const parsed = parseInt(value, 10) || 0;
+    if (parsed > 500) {
+      Alert.alert('Invalid Input', 'Tip amount cannot exceed 500')
+      setCustomTip('500');
+      setSelectedTip('custom');
+      if (onTipChange) {
+        onTipChange(500);
+      }
+      return;
+    }
+    setCustomTip(value);
+    if (value) {
+      setSelectedTip('custom');
+      const parsed = parseFloat(value);
+      if (onTipChange) {
+        onTipChange(parsed);
+      }
+    } else {
+      setSelectedTip(null);
+      if (onTipChange) {
+        onTipChange(0);
+      }
+    }
+  }, [onTipChange]);
+
+  useEffect(() => {
+    if (selectedTip === 'custom' && customTip) {
+      const parsed = parseFloat(customTip);
+      if (onTipChange) {
+        onTipChange(parsed);
+      }
+    }
+  }, [customTip, selectedTip, onTipChange]);
 
   return (
     <View style={styles.container}>
@@ -31,7 +69,7 @@ const TipSelector = ({ onTipChange }) => {
               styles.tipButton,
               selectedTip === amount && styles.selected,
             ]}
-            onPress={() => setSelectedTip(amount)}
+            onPress={() => handleTipSelect(amount)}
           >
             <Text style={styles.tipText}>Rs.{amount}</Text>
           </TouchableOpacity>
@@ -49,11 +87,20 @@ const TipSelector = ({ onTipChange }) => {
 
       {selectedTip === 'custom' && (
         <TextInput
-          style={styles.input}
-          placeholder="Enter custom tip"
-          keyboardType="numeric"
+          style={[
+            styles.tipButton,
+            styles.customInput,
+            {color:'white'},
+            selectedTip === 'custom' && styles.selected,
+          ]}
+          placeholder="Enter amount"
+          placeholderTextColor="white"
+          keyboardType="number-pad"
           value={customTip}
-          onChangeText={setCustomTip}
+          onChangeText={handleCustomTipChange}
+          maxLength={3}
+          textAlign="center"
+          selectionColor="white"
         />
       )}
     </View>
@@ -62,11 +109,11 @@ const TipSelector = ({ onTipChange }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#d9f2f1',
+    backgroundColor: '#d5ece9',
     padding: 16,
     borderRadius: 10,
     margin: 16,
-    width: '95%',
+    marginHorizontal: 12,
     alignSelf: 'center',
   },
   title: { fontSize: 16, fontWeight: 'bold' },
@@ -78,23 +125,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tipButton: {
-    backgroundColor: '#00b2a9',
+    backgroundColor: 'white',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
     marginTop: 8,
   },
-  tipText: { color: '#fff', fontWeight: 'bold' },
-  selected: { backgroundColor: '#007f7a' },
+  tipText: { color: 'black', fontWeight: 'bold' },
+  selected: { backgroundColor: '#00A99D' },
+  customInput: {
+    width: '100%',
+    height: 40,
+    marginTop: 8,
+  },
   input: {
-    marginTop: 12,
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    fontSize: 16,
     borderWidth: 1,
-    borderColor: '#aaa',
+    borderColor: '#ddd',
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 5,
   },
 });
 

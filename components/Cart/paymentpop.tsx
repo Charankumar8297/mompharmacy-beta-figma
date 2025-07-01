@@ -1,58 +1,93 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 
-
-export default function PaymentPop({ visible, onClose }: { visible: boolean, onClose: () => void }) {
+export default function PaymentPop({
+  visible,
+  onClose,
+  onPay,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onPay: (method: string) => void;
+}) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   return (
     <Modal transparent visible={visible} animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.popup}>
-          <View style={styles.handle} />
+      <TouchableWithoutFeedback onPress={() => {}}>
+        <View style={styles.overlay}>
+          <View style={styles.popup}>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
 
-          <Text style={styles.sectionTitle}>PAYMENT METHOD</Text>
+            <View style={styles.handle} />
+            <Text style={styles.sectionTitle}>PAYMENT METHOD</Text>
 
-          
-          <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('razorpay')}>
-            <View style={styles.circleIcon}>
-              <Image source={require('../../assets/images/razorpay.png')}
-              style={styles.iconImage}
-              resizeMode="contain"/>
-            </View>
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentText}>Razorpay</Text>
-            </View>
-            <View style={[styles.radioCircle, selectedOption === 'razorpay' && styles.selectedRadio]} />
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('RAZORPAY')}>
+              <View style={styles.circleIcon}>
+                <Image
+                  source={require('../../assets/images/razorpay.png')}
+                  style={styles.iconImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentText}>Razorpay</Text>
+              </View>
+              <View style={[styles.radioCircle, selectedOption === 'RAZORPAY' && styles.selectedRadio]} />
+            </TouchableOpacity>
 
-          
-          <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('payu')}>
-          <View style={styles.circleIcon}>
-              <Image source={require('../../assets/images/payu.png')}
-              style={styles.iconImage}
-              resizeMode="contain"/>
-            </View>
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentText}>PayU</Text>
-            </View>
-            <View style={[styles.radioCircle, selectedOption === 'payu' && styles.selectedRadio]} />
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('PAYU')}>
+              <View style={styles.circleIcon}>
+                <Image
+                  source={require('../../assets/images/payu.png')}
+                  style={styles.iconImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentText}>PayU</Text>
+              </View>
+              <View style={[styles.radioCircle, selectedOption === 'PAYU' && styles.selectedRadio]} />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.payButton, !selectedOption && { backgroundColor: '#ccc' }]}
-            disabled={!selectedOption}
-            onPress={() => {
-              if (selectedOption) {
-                console.log('Proceeding with:', selectedOption);
-                onClose();
-              }
-            }}
-          >
-            <Text style={styles.payButtonText}>Pay</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('COD')}>
+              <View style={styles.circleIcon}>
+                <Ionicons name="cash-outline" size={24} color="#00A99D" />
+              </View>
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentText}>Cash on Delivery</Text>
+              </View>
+              <View style={[styles.radioCircle, selectedOption === 'COD' && styles.selectedRadio]} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.payButton, !selectedOption && { backgroundColor: '#ccc' }]}
+              disabled={!selectedOption}
+              onPress={() => {
+                if (selectedOption) {
+                  onPay(selectedOption);
+                  onClose();
+                }
+              }}
+            >
+              <Text style={styles.payButtonText}>
+                {selectedOption === 'cod' ? 'Place Order (COD)' : 'Pay'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
@@ -68,6 +103,13 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    zIndex: 2,
   },
   handle: {
     width: 40,
@@ -77,28 +119,14 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 10,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  amount: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginVertical: 10,
-  },
   sectionTitle: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: 'black ',
-    marginTop: 20,
+    color: 'black',
     alignSelf: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    marginTop: 5,
   },
-  iconImage: {
-  width: 24,
-  height: 24,
-},
-
   paymentOption: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -113,14 +141,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  selectedRadio: {
-  backgroundColor: '#00A99D',
-  borderColor: '#00A99D',
-},
-  iconText: {
-    color: 'white',
-    fontWeight: 'bold'
-    
+  iconImage: {
+    width: 24,
+    height: 24,
   },
   paymentInfo: {
     flex: 1,
@@ -129,20 +152,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  subText: {
-    fontSize: 12,
-    color: 'gray',
-  },
-  checkMark: {
-    fontSize: 18,
-    color: 'green',
-  },
   radioCircle: {
     width: 18,
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
     borderColor: '#aaa',
+  },
+  selectedRadio: {
+    backgroundColor: '#00A99D',
+    borderColor: '#00A99D',
   },
   payButton: {
     backgroundColor: '#00A99D',

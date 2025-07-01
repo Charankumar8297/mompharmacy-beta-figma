@@ -1,302 +1,299 @@
+import PaymentPop from '@/components/Cart/paymentpop';
+import TipSelector from '@/components/Cart/tip';
 import CartList from '@/components/OrdersComponents/CartList';
+import OrderSummary from '@/components/OrdersComponents/OrderSummary';
 import ProtectedLayout from '@/components/ProtectedRoute';
 import { COLOR, screen } from '@/constants/color';
+import { useAddress } from '@/Context/addressContext';
+import { userAuth } from '@/Context/authContext';
+import { useOrderActive } from '@/Context/orderContext';
+import apiClient from '@/utils/apiClient';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { useCart } from '../../Context/cartContext';
 import Recommended from '../Recommended';
 
-
-
 const OrderReviewScreen = () => {
+  const { cartItems, subtotal, updateQuantity, clearCart } = useCart();
+  const { ExtractParseToken } = userAuth();
+  const { getPrimaryAddress, primaryAddress } = useAddress();
+  const { updateActiveOrder } = useOrderActive();
 
- 
-  const [items, setItems] = useState([]);
-
-  const {cartItems , subtotal} = useCart()
-
-
-  console.log(cartItems)
+  const [isLoading, setIsLoading] = useState(false);
+  const [tipAmount, setTipAmount] = useState(0);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
   const handleQuantityChange = (id, type) => {
-    setItems(prevItems =>
-      prevItems.map(item => {
-        if (item._id === id) {
-          let newQty = type === 'inc' ? item.quantity + 1 : item.quantity - 1;
-          return { ...item, quantity: newQty > 0 ? newQty : 1 };
-        }
-        return item;
-      })
-    );
+    const item = cartItems.find((item) => item.id === id);
+    if (!item) return;
+    const newQty = type === 'inc' ? item.quantity + 1 : item.quantity - 1;
+    updateQuantity(id, newQty > 0 ? newQty : 1);
   };
 
-  if(cartItems.length<1){
-   return <View style={{flex:1 , justifyContent:"center" , alignItems:"center"}}>
-    <Text style={{fontSize:18 , color:"gray" , fontWeight:"bold"}}>Your cart is Empty</Text>
-   </View>
+  const postOrders = async (paymentMethod = 'COD', transactionId = null) => {
+    const tokenAuth = await ExtractParseToken();
+    const orderMedicines = cartItems.map((item) => ({
+      medicine_id: item._id,
+      quantity: item.quantity,
+      price: item.price,
+      imageUrl: item.imageUrl,
+      name: item.medicine_name
+    }));
+
+    const totalAmount = subtotal + 5 + 2.5 - 3 + tipAmount;
+
+    const orderData = {
+      address_id: primaryAddress,
+      medicines: orderMedicines,
+      ETA: 10,
+      subtotal,
+      shippingFee: 5,
+      tax: 2.5,
+      discount: 3,
+      total_amount: totalAmount,
+      paymentMethod,
+      transactionId,
+    };
+
+    setIsLoading(true);
+    try {
+      const response = await apiClient('api/add-order', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${tokenAuth}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      return response; // contains: { order, payment }
+    } catch (err) {
+      console.error('Error placing order:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!cartItems || cartItems.length === 0) {
+    return (
+      <SafeAreaView style={styles.emptyContainer}>
+        <View style={{ padding: 20, alignItems: 'center' }}>
+          <Text style={styles.emptyText}>Your cart is empty.</Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
-  return (
-    
-   <ProtectedLayout>
-    <View style={styles.mainContainer}>
-      {/* <StatusHeader title={"Cart"} /> */}
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 120 }}>
-       
-        <CartList/>
-        <View style={styles.FreeDelivery}>
-        <Text style={styles.freeDeliveryText} >Just ₹xx away from free delivery</Text>
-        <TouchableOpacity onPress={()=> router.push("/essential")} >
-          <Text style={styles.addMoreText} >+Add More</Text>
-        </TouchableOpacity>
-
-
-        </View>
-        
-
-
-
-        <View style={styles.recommendedContainer}>
-        
-          {/* <Text style={styles.recommended}>Recommended</Text> */}
-        
-        
-        {/* <ScrollView horizontal={true}> */}
-          <Recommended />
-          </View>
-          {/* <View style={styles.recommendedCardContainer}>
-            {items.map(item => (
-              <MedicineCard key={item._id} item={item} />
-            ))}
-          </View> */}
-        {/* </ScrollView> */}
-      </ScrollView>
-
-      {/* Fixed at bottom */}
-      <View style={styles.proccedContainer}>
-        <View style={styles.priceContainer}>
-          <Text style={styles.discountPrice}>Rs {subtotal}</Text>
-          {/* <Text style={styles.originalPrice}>Rs 300</Text> */}
-        </View>
-        <View>
-          <TouchableOpacity style={styles.proccedBtn} onPress={()=>router.push("/Orders/Checkout")}>
-            <Text style={styles.proccedBtnText}>Add Address and proceed</Text>
-          </TouchableOpacity>
-        </View>
+  if (!primaryAddress) {
+    return (
+      <View style={{ marginTop: 20, padding: 12 }}>
+        <Text style={{ marginVertical: 12, color: COLOR.btnPrimary }}>
+          You don’t have a saved address. Please add one.
+        </Text>
       </View>
-      
-    </View>
-</ProtectedLayout>
-  );
+    );
+  }
 
+  const totalAmount = subtotal + 5 + 2.5 - 3 + tipAmount;
+
+  return (
+    <ProtectedLayout>
+      <View style={styles.mainContainer}>
+        <SafeAreaView>
+          <View style={styles.headerRow}>
+            <MaterialIcons name='arrow-back' size={24} color='#00a99d' style={styles.backButton} onPress={() => router.back()} />
+            <Text style={styles.cartText}>Cart</Text>
+          </View>
+          <ScrollView style={styles.container}>
+            <CartList />
+
+            <View style={styles.FreeDelivery}>
+              <Text style={styles.freeDeliveryText}>Just ₹xx away from free delivery</Text>
+              <TouchableOpacity onPress={() => router.push("/essential")}>
+                <Text style={styles.addMoreText}>+Add More</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.addressBox}>
+              <Ionicons name="location-outline" size={24} color="#007F5F" style={styles.icon} />
+              <View>
+                <Text style={styles.addressTitle}>Deliver to</Text>
+                <Text style={styles.address}>
+                  {getPrimaryAddress().slice(0, 30)}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push("/Maps/myAddress")}>
+                <Text>Change</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Recommended />
+
+            <TipSelector onTipChange={(tip) => setTipAmount(tip)} />
+            <OrderSummary tipAmount={tipAmount} />
+
+            <TouchableOpacity
+              style={styles.proceedButton}
+              onPress={() => setPaymentModalVisible(true)}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.proceedText}>Select Payment Method</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* <View style={styles.footerContainer}>
+              <TouchableOpacity
+                style={styles.payNowButton}
+                onPress={() => setPaymentModalVisible(true)}
+              >
+                <Text style={styles.payNowText}>Pay Now ₹{subtotal}</Text>
+              </TouchableOpacity>
+            </View> */}
+          </ScrollView>
+        </SafeAreaView>
+
+        <PaymentPop
+          visible={paymentModalVisible}
+          onClose={() => setPaymentModalVisible(false)}
+          onPay={async (method) => {
+            setPaymentModalVisible(false);
+            const response = await postOrders(method);
+
+            if (!response?.order) {
+              return;
+            }
+
+            updateActiveOrder(response.order._id);
+
+            if (method === 'RAZORPAY' && response.payment?.razorpayOrderId) {
+              router.push({
+                pathname: 'Orders/RazorPayWebView',
+                params: {
+                  amount: totalAmount.toFixed(2),
+                  razorpayOrderId: response.payment.razorpayOrderId,
+                  orderId: response.order._id,
+                },
+              });
+            } else if (method === 'payu') {
+              router.push({
+                pathname: '/Orders/PayUWebViewScreen',
+                params: {
+                  amount: totalAmount.toFixed(2),
+                  addressId: primaryAddress,
+                  tipAmount: tipAmount.toFixed(2),
+                },
+              });
+            } else {
+              clearCart();
+              router.replace({
+                pathname: "/Orders/TrackOrder",
+                params: { orderId: response.order._id },
+              });
+            }
+          }}
+        />
+      </View>
+    </ProtectedLayout>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
+  cartText: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16
+    color: '#00a99d',
+    marginHorizontal: 30
   },
-  addbtn:{
-    width:"100%",
-    height:30,
-    backgroundColor:"#D5ECE9",
-    borderRadius:20,
-    marginTop:10,
-
+  backButton: {
+    // marginTop: 20,
+    marginLeft: 20
   },
-  FreeDelivery:{
-    marginTop:10,
-    borderRadius:20,
-    height:'auto',
-    width:'auto',
-    marginHorizontal:15,
-    backgroundColor:'#e7f6f2',
+  headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-  },
-  freeDeliveryText:{
-    margin:10,
-    fontWeight:600,
-    textAlign:'center'
-  },
 
-  deliveryBox: {
-    backgroundColor: '#e7f6f2',
-    borderRadius: 12,
-    padding: 12,
-  },
-  deliveryTime: {
-    fontWeight: 'bold',
-    fontSize: 16
-  },
-  shipment: {
-    color: '#555',
-    marginBottom: 8
-  },
+    alignItems: 'center'
 
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8
   },
-  itemImage: {
-    width: 50,
-    height: 50,
-    resizeMode: 'contain',
-    marginRight: 10
-  },
-  itemInfo: { flex: 1 },
-  itemName: { fontWeight: 'bold' },
-  itemUnit: { color: '#666' },
-  saveLater: { color: '#007aff', textDecorationLine: 'underline', fontSize: 12 },
-
-  counterBox: { alignItems: 'center' }, 
-  counterControl: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#00bfa5',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  counterBtn: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginHorizontal: 6,
-  },
-  counterValue: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  itemPrice: { marginTop: 4, fontWeight: 'bold' },
-
+  container: { backgroundColor: '#fff', marginTop: 20, position: 'relative' },
+  mainContainer: { flex: 1, height: screen.width, backgroundColor: "#fff" },
+  icon: { marginRight: 12 },
   addressBox: {
-    backgroundColor: '#e7f6f2',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 16,
+    backgroundColor: '#DFF4EF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 20,
+    marginHorizontal: 12,
+    marginVertical: 10,
   },
   addressTitle: { fontWeight: 'bold' },
   address: { marginTop: 4 },
-  inTime: { color: 'green' },
-
-  summaryBox: {
-    marginVertical: 20,
-    paddingHorizontal: 20,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 4,
-  },
-  summaryLabel: {
-    fontSize: 16,
-    color: '#333',
-  },
-  addMoreText: {
-    textDecorationLine: 'underline',
-    color: '#00a99d',
-  },
-  summaryValue: {
-    fontWeight: '500',
-  },
-  discountValue: {
-    fontWeight: '500',
-    color: 'green',
-  },
-  totalLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
-  totalValue: {
-    fontWeight: 'bold',
-  },
-  payByLabel: {
-    fontSize: 16,
-    color: '#555',
-  },
-  cod: {
-    fontSize: 16,
-    color: '#0BA29D',
-    fontWeight: '600',
-  },
-
   proceedButton: {
     backgroundColor: '#00bfa5',
-    borderRadius: 24,
+    borderRadius: 20,
     alignItems: 'center',
-    paddingVertical: 7,
-    marginTop: 0,
+    paddingVertical: 12,
+    marginBottom: 10,
+    width: "90%",
+    alignSelf: "center",
   },
   proceedText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  recommendedContainer: {
-    marginVertical: 12,
-    marginHorizontal: 12
+  FreeDelivery: {
+    marginTop: 10,
+    borderRadius: 20,
+    marginHorizontal: 15,
+    backgroundColor: '#e7f6f2',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
   },
-  recommended: {
-    fontSize: 17,
-    fontWeight: "bold"
+  freeDeliveryText: {
+    margin: 10,
+    fontWeight: '600',
+    textAlign: 'center'
   },
-  recommendedCardContainer: {
-    flexDirection: "row",
-    gap: 12
+  addMoreText: {
+    textDecorationLine: 'underline',
+    color: '#00a99d',
   },
-  proccedContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderColor: COLOR.light,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    paddingHorizontal: 12,
-    paddingVertical: -20, 
-    height: 60, 
-  },
-  
-  mainContainer: {
+  emptyContainer: {
     flex: 1,
-    height: screen.width
+    justifyContent: 'center',
+    backgroundColor: '#fff',
   },
-  priceContainer: {
-    flexDirection: "row",
-    gap: 10,
-    paddingVertical: 20,
-    paddingHorizontal: 14
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#555',
+    marginBottom: 20,
   },
-  proccedBtn: {
-    padding: 20,
-    backgroundColor: COLOR.primary,
-    borderRadius: 12,
-
+  shopNowButton: {
+    backgroundColor: '#00bfa5',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
   },
-  proccedBtnText:{
-    color:"white",
-    fontSize:17,
-    fontWeight:"bold",
+  shopNowText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
-  discountPrice:{
-    color:COLOR.primary ,
-    fontSize:17,
-    fontWeight:"bold"
-  },
-  originalPrice:{
-    textDecorationLine:'line-through'
-  }
-
 });
 
 export default OrderReviewScreen;

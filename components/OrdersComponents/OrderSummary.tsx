@@ -3,12 +3,17 @@ import React, { useState } from 'react';
 import { Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCart } from '../../Context/cartContext';
 
+interface OrderSummaryProps {
+  tipAmount: number;
+  printedInvoiceFee: boolean;
+}
+
 const { height } = Dimensions.get('window');
 
-export default function OrderSummary({tipAmount = 0 }) {
+export default function OrderSummary({ tipAmount = 0, printedInvoiceFee = false }: OrderSummaryProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { subtotal } = useCart();
-  const total = (subtotal + 20 + 5 - 10 + tipAmount).toFixed(2);
+  const total = (subtotal + 20 + 5 - 10 + tipAmount + (printedInvoiceFee ? 5 : 0)).toFixed(2);
 
   return (
     <>
@@ -60,6 +65,12 @@ export default function OrderSummary({tipAmount = 0 }) {
                 <Text style={styles.summaryLabel}>Tax</Text>
                 <Text style={styles.summaryValue}>₹5.00</Text>
               </View>
+              {printedInvoiceFee && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Printed Invoice</Text>
+                  <Text style={styles.summaryValue}>₹5.00</Text>
+                </View>
+              )}
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Discount</Text>
                 <Text style={styles.discountValue}>–₹10.00</Text>
@@ -150,12 +161,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  closeText: {
-    fontSize: 22,
-    color: 'white',
-    lineHeight: 20,
-    marginBottom: 0,
-  },
+  // closeText: {
+  //   fontSize: 22,
+  //   color: 'white',
+  //   lineHeight: 20,
+  //   marginBottom: 0,
+  // },
   modalContent: {
     padding: 20,
   },
