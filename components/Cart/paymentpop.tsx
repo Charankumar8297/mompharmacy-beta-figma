@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Dimensions,
   Image,
   Modal,
   PanResponder,
@@ -12,6 +13,7 @@ import {
   View
 } from 'react-native';
 import SwipeButton from '../OrdersComponents/SwipeButton';
+const { height, width } = Dimensions.get('window');
 
 export default function PaymentPop({
   visible,
@@ -24,6 +26,7 @@ export default function PaymentPop({
 }) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const translateY = useRef(new Animated.Value(0)).current;
+
 
   const panResponder = useRef(
     PanResponder.create({
@@ -130,6 +133,28 @@ export default function PaymentPop({
               />
             </TouchableOpacity>
 
+            <TouchableOpacity
+              style={styles.paymentOption}
+              onPress={() => setSelectedOption('CASHFREE')}
+            >
+              <View style={styles.circleIcon}>
+                <Image
+                  source={require('../../assets/images/cashfree-logo.png')}
+                  style={styles.iconImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentText}>Cashfree</Text>
+              </View>
+              <View
+                style={[
+                  styles.radioCircle,
+                  selectedOption === 'CASHFREE' && styles.selectedRadio,
+                ]}
+              />
+            </TouchableOpacity>
+
             <SwipeButton
               visible={visible}
               onClose={onClose}
@@ -159,7 +184,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     position: 'relative',
-    height: '40%',
+    height: height * 0.5,
   },
   handle: {
     width: 40,

@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function PayUWebView() {
@@ -68,16 +68,16 @@ export default function PayUWebView() {
     console.log('Navigated to:', url);
 
     if (url.includes('/payment-success')) {
-      Alert.alert('Payment Success', 'Your payment was successful.');
+      console.log('Payment Success', 'Your payment was successful.');
       router.replace('/Orders/TrackOrder');
     } else if (url.includes('/payment-failure')) {
-      Alert.alert('Payment Failed', 'Your payment failed.');
+      console.error('Payment Failed', 'Your payment failed.');
       router.back();
     }
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, marginTop: 50 }}>
       <WebView
         ref={webviewRef}
         originWhitelist={['*']}

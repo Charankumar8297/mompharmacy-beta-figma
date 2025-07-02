@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -218,7 +219,20 @@ const OrderReviewScreen = () => {
                   },
                 });
   
-              } else {
+              } else if (method === 'CASHFREE' && response.cashfree?.token) {
+                router.push({
+                  pathname: 'Orders/CashfreeWebView',
+                  params: {
+                    orderId: response.cashfree.orderId,
+                    orderAmount: totalAmount.toFixed(2),
+                    cashfreeToken: response.cashfree.token,
+                    appId: response.cashfree.appId,
+                  },
+                });
+                clearCart();
+              }
+        
+              else {
                 clearCart();
                 router.replace({
                   pathname: "/Orders/TrackOrder",

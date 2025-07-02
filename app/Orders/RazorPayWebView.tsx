@@ -54,10 +54,10 @@ export default function RazorPayWebView() {
 
         if (response.success) {
           clearCart();
-          Alert.alert('Payment Successful!', 'Your order has been placed.');
+          console.log('Payment Successful!', 'Your order has been placed.');
           router.replace('/Orders/TrackOrder');
         } else {
-          Alert.alert('Verification Failed', response.message || 'Something went wrong');
+          console.error('Verification Failed', response.message || 'Something went wrong');
           router.back();
         }
       } else if (data?.action === 'close_webview' || data?.error?.code === 'CHECKOUT_CLOSED') {

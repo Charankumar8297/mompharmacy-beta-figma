@@ -10,6 +10,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   Linking,
   ScrollView,
@@ -19,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+const {width, height} = Dimensions.get('window');
 
 export default function TrackOrder() {
   const [openOrderSummary, setOpenOrderSummary] = useState(false);
@@ -229,7 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center'
   },
-  contentContainer: { flex: 1, backgroundColor: 'white' },
+  contentContainer: { flex: 1, backgroundColor: 'white', marginTop: 20 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   errorText: { color: 'red', marginBottom: 10, textAlign: 'center' },
