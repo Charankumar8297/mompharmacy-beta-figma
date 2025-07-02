@@ -4,16 +4,27 @@ import { Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { useCart } from '../../Context/cartContext';
 
 interface OrderSummaryProps {
-  tipAmount: number;
-  printedInvoiceFee: boolean;
+  tipAmount?: number;
+  printedInvoiceFee?: boolean;
+  order?: any; // Pass `order` object from TrackOrder page if available
 }
 
 const { height } = Dimensions.get('window');
 
-export default function OrderSummary({ tipAmount = 0, printedInvoiceFee = false }: OrderSummaryProps) {
+export default function OrderSummary({
+  tipAmount = 0,
+  printedInvoiceFee = false,
+  order,
+}: OrderSummaryProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { subtotal } = useCart();
-  const total = (subtotal + 20 + 5 - 10 + tipAmount + (printedInvoiceFee ? 5 : 0)).toFixed(2);
+  const cartContext = useCart();
+
+  const subtotal = order?.subtotal ?? cartContext.subtotal ?? 0;
+  const delivery = 20;
+  const tax = 5;
+  const discount = 10;
+  const invoiceFee = printedInvoiceFee ? 5 : 0;
+  const total = (subtotal + delivery + tax - discount + tipAmount + invoiceFee).toFixed(2);
 
   return (
     <>
@@ -23,20 +34,20 @@ export default function OrderSummary({ tipAmount = 0, printedInvoiceFee = false 
         activeOpacity={0.8}
       >
         <View style={styles.summaryBox}>
-          <MaterialIcons name='receipt-long' size={24} color='black' />
+          <MaterialIcons name="receipt-long" size={24} color="black" />
           <Text style={styles.OrderSummary}>Order Summary</Text>
-          <MaterialIcons name='keyboard-arrow-down' size={24} color='black' />
+          <MaterialIcons name="keyboard-arrow-down" size={24} color="black" />
         </View>
       </TouchableOpacity>
 
       <Modal
-        animationType='slide'
-        transparent={true}
+        animationType="slide"
+        transparent
         visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.overlayTouchable}
             activeOpacity={1}
             onPress={() => setIsModalVisible(false)}
@@ -47,34 +58,40 @@ export default function OrderSummary({ tipAmount = 0, printedInvoiceFee = false 
                 style={styles.closebtn}
                 onPress={() => setIsModalVisible(false)}
               >
-                <MaterialIcons name='close' size={24} color='white' />
+                <MaterialIcons name="close" size={24} color="white" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalContent}>
               <Text style={styles.OrderSummary}>Order Summary</Text>
+
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Subtotal</Text>
                 <Text style={styles.summaryValue}>₹{subtotal.toFixed(2)}</Text>
               </View>
+
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Delivery</Text>
-                <Text style={styles.summaryValue}>₹20.00</Text>
+                <Text style={styles.summaryValue}>₹{delivery.toFixed(2)}</Text>
               </View>
+
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Tax</Text>
-                <Text style={styles.summaryValue}>₹5.00</Text>
+                <Text style={styles.summaryValue}>₹{tax.toFixed(2)}</Text>
               </View>
+
               {printedInvoiceFee && (
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Printed Invoice</Text>
                   <Text style={styles.summaryValue}>₹5.00</Text>
                 </View>
               )}
+
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Discount</Text>
-                <Text style={styles.discountValue}>–₹10.00</Text>
+                <Text style={styles.discountValue}>–₹{discount.toFixed(2)}</Text>
               </View>
+
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Tip</Text>
                 <Text style={styles.summaryValue}>₹{tipAmount.toFixed(2)}</Text>
@@ -84,6 +101,7 @@ export default function OrderSummary({ tipAmount = 0, printedInvoiceFee = false 
                 <Text style={styles.totalLabel}>Total</Text>
                 <Text style={styles.totalValue}>₹{total}</Text>
               </View>
+
               <View style={styles.summaryRow}>
                 <Text style={styles.payByLabel}>Pay By</Text>
                 <Text style={styles.cod}>COD/TNPL</Text>

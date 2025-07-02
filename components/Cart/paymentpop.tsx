@@ -1,14 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Image,
   Modal,
+  PanResponder,
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View
 } from 'react-native';
+import SwipeButton from '../OrdersComponents/SwipeButton';
 
 export default function PaymentPop({
   visible,
@@ -20,20 +23,73 @@ export default function PaymentPop({
   onPay: (method: string) => void;
 }) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          onClose();
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(0);
+    }
+  }, [visible]);
 
   return (
     <Modal transparent visible={visible} animationType="slide">
-      <TouchableWithoutFeedback onPress={() => {}}>
+      <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
-          <View style={styles.popup}>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color="#666" />
-            </TouchableOpacity>
-
+          <Animated.View
+            style={[
+              styles.popup,
+              {
+                transform: [{ translateY }],
+              },
+            ]}
+            {...panResponder.panHandlers}
+          >
             <View style={styles.handle} />
             <Text style={styles.sectionTitle}>PAYMENT METHOD</Text>
 
-            <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('RAZORPAY')}>
+            <TouchableOpacity
+              style={styles.paymentOption}
+              onPress={() => setSelectedOption('COD')}
+            >
+              <View style={styles.circleIcon}>
+                <Ionicons name="cash-outline" size={24} color="#00A99D" />
+              </View>
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentText}>Cash on Delivery</Text>
+              </View>
+              <View
+                style={[
+                  styles.radioCircle,
+                  selectedOption === 'COD' && styles.selectedRadio,
+                ]}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.paymentOption}
+              onPress={() => setSelectedOption('RAZORPAY')}
+            >
               <View style={styles.circleIcon}>
                 <Image
                   source={require('../../assets/images/razorpay.png')}
@@ -44,10 +100,18 @@ export default function PaymentPop({
               <View style={styles.paymentInfo}>
                 <Text style={styles.paymentText}>Razorpay</Text>
               </View>
-              <View style={[styles.radioCircle, selectedOption === 'RAZORPAY' && styles.selectedRadio]} />
+              <View
+                style={[
+                  styles.radioCircle,
+                  selectedOption === 'RAZORPAY' && styles.selectedRadio,
+                ]}
+              />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('PAYU')}>
+            <TouchableOpacity
+              style={styles.paymentOption}
+              onPress={() => setSelectedOption('PAYU')}
+            >
               <View style={styles.circleIcon}>
                 <Image
                   source={require('../../assets/images/payu.png')}
@@ -58,34 +122,25 @@ export default function PaymentPop({
               <View style={styles.paymentInfo}>
                 <Text style={styles.paymentText}>PayU</Text>
               </View>
-              <View style={[styles.radioCircle, selectedOption === 'PAYU' && styles.selectedRadio]} />
+              <View
+                style={[
+                  styles.radioCircle,
+                  selectedOption === 'PAYU' && styles.selectedRadio,
+                ]}
+              />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.paymentOption} onPress={() => setSelectedOption('COD')}>
-              <View style={styles.circleIcon}>
-                <Ionicons name="cash-outline" size={24} color="#00A99D" />
-              </View>
-              <View style={styles.paymentInfo}>
-                <Text style={styles.paymentText}>Cash on Delivery</Text>
-              </View>
-              <View style={[styles.radioCircle, selectedOption === 'COD' && styles.selectedRadio]} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.payButton, !selectedOption && { backgroundColor: '#ccc' }]}
-              disabled={!selectedOption}
-              onPress={() => {
+            <SwipeButton
+              visible={visible}
+              onClose={onClose}
+              onConfirm={() => {
                 if (selectedOption) {
                   onPay(selectedOption);
                   onClose();
                 }
               }}
-            >
-              <Text style={styles.payButtonText}>
-                {selectedOption === 'cod' ? 'Place Order (COD)' : 'Pay'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            />
+          </Animated.View>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
@@ -104,12 +159,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     position: 'relative',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
-    zIndex: 2,
+    height: '40%',
   },
   handle: {
     width: 40,
@@ -162,17 +212,5 @@ const styles = StyleSheet.create({
   selectedRadio: {
     backgroundColor: '#00A99D',
     borderColor: '#00A99D',
-  },
-  payButton: {
-    backgroundColor: '#00A99D',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 30,
-  },
-  payButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
