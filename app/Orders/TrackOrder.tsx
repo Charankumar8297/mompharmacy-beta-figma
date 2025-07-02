@@ -1,13 +1,12 @@
 import BannerCarousel from '@/components/Cart/carousal';
-import StatusHeader from '@/components/OrdersComponents/StatusHeader';
+import OrderSummary from '@/components/OrdersComponents/OrderSummary';
 import { COLOR } from '@/constants/color';
 import { userAuth } from '@/Context/authContext';
 import { useOrderActive } from '@/Context/orderContext';
 import apiClient from '@/utils/apiClient';
 import { Ionicons } from '@expo/vector-icons';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,7 +16,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,6 +25,7 @@ export default function TrackOrder() {
   const { ActiveOrderId } = useOrderActive();
   const [order, setOrder] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [tipAmount, setTipAmount] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const { ExtractParseToken } = userAuth();
@@ -142,7 +142,10 @@ export default function TrackOrder() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.contentContainer}>
-        <StatusHeader title="Track Order" />
+        <View style={styles.headerRow}>
+          <MaterialIcons name='arrow-back' size={24} color='#00a99d' style={styles.backButton} onPress={() => router.back()} />
+          <Text style={styles.cartText}>Track Order</Text>
+        </View>
         <View style={trackPageStyles.cor}>
           <BannerCarousel />
         </View>
@@ -155,7 +158,7 @@ export default function TrackOrder() {
                 <View style={trackPageStyles.innerCircle}>
                   <Text style={trackPageStyles.arriving}>Arriving in</Text>
                   <Text style={trackPageStyles.ETA}>10 MINS</Text>
-                  <Text style={trackPageStyles.way}>On the way</Text>
+                  <Text style={trackPageStyles.way}>on the way</Text>
                 </View>
               </View>
             </View>
@@ -188,44 +191,21 @@ export default function TrackOrder() {
             <Text style={trackPageStyles.orderItemHeading}>Item Detail(s)</Text>
             <OrderItems />
 
-           {order?.address_id && typeof order.address_id === 'object' && (
-            <View style={styles.addressContainer}>
-              <Text style={styles.addressTitle}>Delivery Address</Text>
-              <Text style={styles.addressText}>{order.address_id.street}, {order.address_id.city},{' '}{order.address_id.state} - {order.address_id.pincode}</Text>
-            </View>
-          )}
+            {order?.address_id && typeof order.address_id === 'object' && (
+              <View style={styles.addressContainer}>
+                <Text style={styles.addressTitle}>Delivery Address</Text>
+                <Text style={styles.addressText}>{order.address_id.street}, {order.address_id.city},{' '}{order.address_id.state} - {order.address_id.pincode}</Text>
+              </View>
+            )}
 
           </View>
         </View>
 
-        <TouchableOpacity style={trackPageStyles.borderSummaryBtn} onPress={() => setOpenOrderSummary(o => !o)}>
-          <Text style={trackPageStyles.orderSummarybtnText}>Order Summary</Text>
-          <AntDesign name={openOrderSummary ? 'up' : 'down'} size={24} color="black" />
-        </TouchableOpacity>
-
-        {openOrderSummary && (
-          <View style={trackPageStyles.OrderSummaryDropdownContainer}>
-            <View style={styles.summaryBox}>
-              <Text style={styles.OrderSummary}>Order Summary</Text>
-              {['subtotal', 'Shipping', 'Tax', 'Discount'].map((label, i) => (
-                <View key={i} style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{label}</Text>
-                  <Text style={styles.summaryValue}>
-                    ₹{label === 'subtotal' ? order.subtotal.toFixed(2) : label === 'Discount' ? `– ${order.discount || 0}` : (label === 'Shipping' ? 5 : 2.5).toFixed(2)}
-                  </Text>
-                </View>
-              ))}
-              <View style={styles.summaryRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>₹{(order.subtotal + 5 + 2.5 - (order.discount || 0)).toFixed(0)}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.payByLabel}>Pay By</Text>
-                <Text style={styles.cod}>COD/TNPL</Text>
-              </View>
-            </View>
-          </View>
-        )}
+        <OrderSummary
+          tipAmount={tipAmount}
+          printedInvoiceFee={false}
+          order={order}
+        />
 
         {isFetching && <ActivityIndicator size="small" color={COLOR.primary} style={{ marginTop: 10 }} />}
       </ScrollView>
@@ -235,6 +215,20 @@ export default function TrackOrder() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
+  cartText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#00a99d',
+    marginHorizontal: 30
+  },
+  backButton: {
+    // marginTop: 20,
+    marginLeft: 20
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   contentContainer: { flex: 1, backgroundColor: 'white' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
@@ -242,9 +236,9 @@ const styles = StyleSheet.create({
   retryButton: { backgroundColor: COLOR.primary, padding: 10, borderRadius: 5 },
   retryText: { color: 'white', fontWeight: 'bold' },
   noDataText: { textAlign: 'center', color: 'gray', marginTop: 20 },
-  addressContainer: {marginTop: 12,padding: 12,backgroundColor: '#F9F9F9',borderRadius: 8,borderColor: '#ccc',borderWidth: 1,marginHorizontal: 8,},
-  addressTitle: {fontWeight: 'bold',fontSize: 16,marginBottom: 4,},
-  addressText: {fontSize: 14,color: '#000',lineHeight: 20,},
+  addressContainer: { marginTop: 12, padding: 12, backgroundColor: '#F9F9F9', borderRadius: 8, borderColor: '#ccc', borderWidth: 1, marginHorizontal: 8, },
+  addressTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 4, },
+  addressText: { fontSize: 14, color: '#000', lineHeight: 20, },
   deliveryBoyImage: { width: 180, height: 163 },
   deliveryBoyProfileImage: { width: 40, height: 40 },
   deliveryBoyName: { fontSize: 16, fontWeight: '500' },
@@ -253,8 +247,8 @@ const styles = StyleSheet.create({
   quantityText: { fontSize: 14 },
   priceText: { fontSize: 14, fontWeight: '500' },
   orderItemsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 12 },
-  orderItemContainer: {backgroundColor: COLOR.light,padding: 8,width: 70,height: 70,justifyContent: 'center',alignItems: 'center',borderRadius: 12,position: 'relative'},
-  orderItemQuantityContainer: {position: 'absolute',top: -10,right: -10,backgroundColor: 'white',padding: 2,borderRadius: 12,alignItems: 'center'},
+  orderItemContainer: { backgroundColor: COLOR.light, padding: 8, width: 70, height: 70, justifyContent: 'center', alignItems: 'center', borderRadius: 12, position: 'relative' },
+  orderItemQuantityContainer: { position: 'absolute', top: -10, right: -10, backgroundColor: 'white', padding: 2, borderRadius: 12, alignItems: 'center' },
   OrderSummary: { fontWeight: 'bold', fontSize: 15 },
   summaryBox: { marginVertical: 20, paddingHorizontal: 20 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 4 },
@@ -271,10 +265,10 @@ const trackPageStyles = StyleSheet.create({
   container: {
     margin: 10,
     borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#000",
+    borderWidth: 2,
+    borderColor: "#00a99d",
     paddingBottom: 15,
-    backgroundColor: "#fff",
+    backgroundColor: "white",
   },
   top: { margin: -10 },
   cor: {
@@ -294,7 +288,7 @@ const trackPageStyles = StyleSheet.create({
     flexDirection: "row",
     margin: 10,
     borderWidth: 1.5,
-    borderColor: "gray",
+    borderColor: "#d5ece9",
     borderRadius: 12,
     alignItems: "center",
   },
@@ -344,7 +338,7 @@ const trackPageStyles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: -10,
   },
-  orderItemHeading: { fontWeight: "600", fontSize: 14, padding:12, },
+  orderItemHeading: { fontWeight: "600", fontSize: 14, padding: 12, },
   orderItemAlign: {
     flexDirection: "row",
     gap: 7,
@@ -368,7 +362,7 @@ const trackPageStyles = StyleSheet.create({
     fontSize: 18,
   },
   OrderSummaryDropdownContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: "#d5ece9",
     marginHorizontal: 12,
   },
 });

@@ -32,6 +32,7 @@ const OrderReviewScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [tipAmount, setTipAmount] = useState(0);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [isPrintedInvoice, setIsPrintedInvoice] = useState(false);
 
   const handleQuantityChange = (id, type) => {
     const item = cartItems.find((item) => item.id === id);
@@ -107,15 +108,21 @@ const OrderReviewScreen = () => {
   const totalAmount = subtotal + 5 + 2.5 - 3 + tipAmount;
 
   return (
+
     <ProtectedLayout>
-      <View style={styles.mainContainer}>
-        <SafeAreaView>
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <SafeAreaView style={{ flex: 1,marginBottom: '20%', backgroundColor: 'white' }}>
+        <View style={styles.mainContainer}>
+
           <View style={styles.headerRow}>
             <MaterialIcons name='arrow-back' size={24} color='#00a99d' style={styles.backButton} onPress={() => router.back()} />
             <Text style={styles.cartText}>Cart</Text>
           </View>
           <ScrollView style={styles.container}>
-            <CartList />
+            <CartList 
+              isPrintedInvoice={isPrintedInvoice} 
+              setIsPrintedInvoice={setIsPrintedInvoice} 
+            />
 
             <View style={styles.FreeDelivery}>
               <Text style={styles.freeDeliveryText}>Just ₹xx away from free delivery</Text>
@@ -140,71 +147,67 @@ const OrderReviewScreen = () => {
             <Recommended />
 
             <TipSelector onTipChange={(tip) => setTipAmount(tip)} />
-            <OrderSummary tipAmount={tipAmount} />
-
-            <TouchableOpacity
-              style={styles.proceedButton}
-              onPress={() => setPaymentModalVisible(true)}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.proceedText}>Select Payment Method</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* <View style={styles.footerContainer}>
-              <TouchableOpacity
-                style={styles.payNowButton}
-                onPress={() => setPaymentModalVisible(true)}
-              >
-                <Text style={styles.payNowText}>Pay Now ₹{subtotal}</Text>
-              </TouchableOpacity>
-            </View> */}
+            <OrderSummary 
+              tipAmount={tipAmount} 
+              printedInvoiceFee={isPrintedInvoice} 
+            />
           </ScrollView>
-        </SafeAreaView>
 
-        <PaymentPop
-          visible={paymentModalVisible}
-          onClose={() => setPaymentModalVisible(false)}
-          onPay={async (method) => {
-            setPaymentModalVisible(false);
-            const response = await postOrders(method);
+          <PaymentPop
+            visible={paymentModalVisible}
+            onClose={() => setPaymentModalVisible(false)}
+            onPay={async (method) => {
+              setPaymentModalVisible(false);
+              const response = await postOrders(method);
 
-            if (!response?.order) {
-              return;
-            }
+              if (!response?.order) {
+                return;
+              }
 
-            updateActiveOrder(response.order._id);
+              updateActiveOrder(response.order._id);
 
-            if (method === 'RAZORPAY' && response.payment?.razorpayOrderId) {
-              router.push({
-                pathname: 'Orders/RazorPayWebView',
-                params: {
-                  amount: totalAmount.toFixed(2),
-                  razorpayOrderId: response.payment.razorpayOrderId,
-                  orderId: response.order._id,
-                },
-              });
-            } else if (method === 'payu') {
-              router.push({
-                pathname: '/Orders/PayUWebViewScreen',
-                params: {
-                  amount: totalAmount.toFixed(2),
-                  addressId: primaryAddress,
-                  tipAmount: tipAmount.toFixed(2),
-                },
-              });
-            } else {
-              clearCart();
-              router.replace({
-                pathname: "/Orders/TrackOrder",
-                params: { orderId: response.order._id },
-              });
-            }
-          }}
-        />
+              if (method === 'RAZORPAY' && response.payment?.razorpayOrderId) {
+                router.push({
+                  pathname: 'Orders/RazorPayWebView',
+                  params: {
+                    amount: totalAmount.toFixed(2),
+                    razorpayOrderId: response.payment.razorpayOrderId,
+                    orderId: response.order._id,
+                  },
+                });
+              } else if (method === 'PAYU') {
+                router.push({
+                  pathname: '/Orders/PayUWebViewScreen',
+                  params: {
+                    amount: totalAmount.toFixed(2),
+                    addressId: primaryAddress,
+                    tipAmount: tipAmount.toFixed(2),
+                  },
+                });
+              } else {
+                clearCart();
+                router.replace({
+                  pathname: "/Orders/TrackOrder",
+                  params: { orderId: response.order._id },
+                });
+              }
+            }}
+          />
+        </View>
+      </SafeAreaView>
+
+      
+        <TouchableOpacity
+          style={styles.proceedButton}
+          onPress={() => setPaymentModalVisible(true)}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.proceedText}>Select Payment Method</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </ProtectedLayout>
   );
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
 
   },
-  container: { backgroundColor: '#fff', marginTop: 20, position: 'relative' },
+  container: { backgroundColor: '#fff', marginTop: 20 },
   mainContainer: { flex: 1, height: screen.width, backgroundColor: "#fff" },
   icon: { marginRight: 12 },
   addressBox: {
@@ -242,11 +245,13 @@ const styles = StyleSheet.create({
   addressTitle: { fontWeight: 'bold' },
   address: { marginTop: 4 },
   proceedButton: {
-    backgroundColor: '#00bfa5',
+    position: 'absolute',
+    bottom: 20,
+    backgroundColor: '#00a99d',
     borderRadius: 20,
     alignItems: 'center',
     paddingVertical: 12,
-    marginBottom: 10,
+    marginBottom: 0,
     width: "90%",
     alignSelf: "center",
   },
