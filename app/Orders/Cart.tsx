@@ -7,7 +7,6 @@ import { COLOR, screen } from '@/constants/color';
 import { useAddress } from '@/Context/addressContext';
 import { userAuth } from '@/Context/authContext';
 import { useOrderActive } from '@/Context/orderContext';
-import apiClient from '@/utils/apiClient';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -21,6 +20,7 @@ import {
   View
 } from 'react-native';
 import { useCart } from '../../Context/cartContext';
+import apiClient from "../../utils/apiClient";
 import Recommended from '../Recommended';
 
 const OrderReviewScreen = () => {
@@ -77,9 +77,28 @@ const OrderReviewScreen = () => {
         body: JSON.stringify(orderData),
       });
 
-      return response; // contains: { order, payment }
-    } catch (err) {
-      console.error('Error placing order:', err);
+      console.log('Order response:', response);
+      return response;
+    } catch (error: any) {
+      console.error('Error placing order:', {
+        message: error.message,
+        status: error.status,
+        response: error.response ? {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data
+        } : 'No response',
+        stack: error.stack
+      });
+      
+      let errorMessage = 'Failed to place order';
+      if (error.response) {
+        errorMessage = error.response.data?.message || error.response.statusText || errorMessage;
+      } else if (error.request) {
+        errorMessage = 'No response from server. Please check your internet connection.';
+      }
+      
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +155,7 @@ const OrderReviewScreen = () => {
               <View>
                 <Text style={styles.addressTitle}>Deliver to</Text>
                 <Text style={styles.address}>
-                  {getPrimaryAddress().slice(0, 30)}
+                  {getPrimaryAddress() ? getPrimaryAddress().slice(0, 30) : 'No address found'}
                 </Text>
               </View>
               <TouchableOpacity onPress={() => router.push("/Maps/myAddress")}>
@@ -176,14 +195,29 @@ const OrderReviewScreen = () => {
                   },
                 });
               } else if (method === 'PAYU') {
+                const payu = response.payu;
+                if (!payu || !payu.txnid) {
+                  Alert.alert("Error", "Missing PayU payment details");
+                  return;
+                }
+                
                 router.push({
-                  pathname: '/Orders/PayUWebViewScreen',
+                  pathname: '/Orders/PayUWeb',
                   params: {
-                    amount: totalAmount.toFixed(2),
-                    addressId: primaryAddress,
-                    tipAmount: tipAmount.toFixed(2),
+                    key: payu.key,
+                    txnid: payu.txnid,
+                    amount: payu.amount.toString(),  // convert number to string
+                    firstname: payu.firstname,
+                    email: payu.email,
+                    phone: payu.phone || '',          // phone might be empty string
+                    productinfo: payu.productinfo,
+                    surl: payu.surl,
+                    furl: payu.furl,
+                    service_provider: payu.service_provider,
+                    hash: payu.hash,
                   },
                 });
+  
               } else {
                 clearCart();
                 router.replace({
