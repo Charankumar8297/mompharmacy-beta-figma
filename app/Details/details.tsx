@@ -12,6 +12,7 @@ import {
   Image,
   SafeAreaView,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableHighlight,
@@ -57,6 +58,7 @@ export default function Details() {
     notFor,
     sideEffects,
     store,
+    
     expiryDate,
     manufactureDate,
     subcategories: parsedSubcategories
@@ -142,10 +144,34 @@ export default function Details() {
     }
   }
 
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message: `Check out this product: ${itemName}\nPrice: Rs ${itemPrice}\nDescription: ${description}\nImage: ${imageUrl}`,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared with activity type:', result.activityType);
+        } else {
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    }catch (error) {
+      console.error('Error sharing product:', error);
+    }
+  }
+
   return (
     <SafeAreaView>
       <ScrollView style={styles.container}>
       <StatusHeader title={itemName.slice(0 , 16)} />
+      <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={handleShare}>
+            <Feather name="share-2" size={24} color="#00a99d" />
+          </TouchableOpacity>
+        </View>
       
         <View style={styles.contentWrapper}>
           {/* <TouchableOpacity onPress={() => router.back()} style={styles.cartContainer}>
@@ -318,6 +344,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: 100,
     marginBlockStart: 70
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginRight: 20,
+    marginTop: 10,
   },
   productImage: {
     height: width * 0.5,
